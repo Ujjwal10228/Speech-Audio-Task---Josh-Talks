@@ -73,6 +73,11 @@ def run_pipeline(index_csv: str | Path) -> pd.DataFrame:
 
 def _print_summary(df: pd.DataFrame):
     print("\n── Disfluency Type Distribution ──")
+    if len(df) == 0 or "disfluency_type" not in df.columns:
+        print("  (none detected)")
+        print(f"\nUnique recordings affected: 0")
+        print(f"Total segments with disfluency: 0")
+        return
     print(df["disfluency_type"].value_counts().to_string())
     print(f"\nUnique recordings affected: {df['recording_id'].nunique()}")
     print(f"Total segments with disfluency: {len(df)}")

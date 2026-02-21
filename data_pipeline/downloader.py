@@ -45,6 +45,10 @@ def download_dataset(index_csv: str | Path, workers: int = 8, language_filter: s
     """
     Download all files referenced in *index_csv*.
 
+    Uses URL columns from CSV when present (rec_url_gcp, transcription_url_gcp,
+    metadata_url_gcp or transcription_url, metadata_url), so that alternative
+    base URLs (e.g. joshtalks-data-collection) work. Otherwise builds URLs
+    from user_id and recording_id using config GCP_BASE.
     Returns a DataFrame of successfully downloaded rows.
     """
     df = pd.read_csv(index_csv)
@@ -52,12 +56,26 @@ def download_dataset(index_csv: str | Path, workers: int = 8, language_filter: s
         df = df[df["language"] == language_filter].reset_index(drop=True)
     print(f"Rows to download: {len(df)}")
 
+    has_url_cols = "rec_url_gcp" in df.columns and "transcription_url_gcp" in df.columns
+    if not has_url_cols and "rec_url_gcp" in df.columns and "transcription_url" in df.columns:
+        has_url_cols = True
+    meta_col = "metadata_url_gcp" if "metadata_url_gcp" in df.columns else "metadata_url"
+
     tasks = []
     for _, row in df.iterrows():
-        uid, rid = str(row["user_id"]), str(row["recording_id"])
-        tasks.append((rec_url(uid, rid),           AUDIO_DIR         / f"{rid}.wav"))
-        tasks.append((transcription_url(uid, rid), TRANSCRIPTION_DIR / f"{rid}_transcription.json"))
-        tasks.append((metadata_url(uid, rid),      METADATA_DIR      / f"{rid}_metadata.json"))
+        rid = str(row["recording_id"])
+        if has_url_cols:
+            url_audio = str(row["rec_url_gcp"]).strip()
+            url_trans = str(row.get("transcription_url_gcp", row.get("transcription_url", ""))).strip()
+            url_meta = str(row.get(meta_col, "")).strip()
+        else:
+            uid = str(row["user_id"])
+            url_audio = rec_url(uid, rid)
+            url_trans = transcription_url(uid, rid)
+            url_meta = metadata_url(uid, rid)
+        tasks.append((url_audio, AUDIO_DIR / f"{rid}.wav"))
+        tasks.append((url_trans, TRANSCRIPTION_DIR / f"{rid}_transcription.json"))
+        tasks.append((url_meta, METADATA_DIR / f"{rid}_metadata.json"))
 
     ok = fail = 0
     with ThreadPoolExecutor(max_workers=workers) as pool:

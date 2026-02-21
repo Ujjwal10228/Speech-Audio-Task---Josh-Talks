@@ -25,6 +25,13 @@ Sample usage
 """
 import sys
 from pathlib import Path
+from typing import Optional
+
+from config import ROOT, DATA_DIR
+
+def _data_path(rel: str) -> Path:
+    """Path under data/ that works regardless of cwd."""
+    return DATA_DIR / rel.replace("data/", "").lstrip("/")
 
 # ── Q4 demo (self-contained, no data needed) ──────────────────────────────────
 
@@ -36,14 +43,25 @@ def run_q4_demo():
 def run_q4_csv(csv_path: str = "data/lattice_input.csv"):
     """Q4 from CSV (export Lattice Google Sheet as CSV: reference + 5 model columns)."""
     from q4_lattice_wer.wer_calculator import run_from_csv
-    run_from_csv(csv_path)
+    path = _data_path(csv_path) if csv_path.startswith("data/") else Path(csv_path)
+    run_from_csv(str(path))
 
 
 # ── Q3 spell check ────────────────────────────────────────────────────────────
 
-def run_q3(words_file: str = "data/unique_words.txt"):
-    from q3_spelling.spell_checker import run_spell_check
-    run_spell_check(words_file)
+def run_q3(words_file: Optional[str] = None):
+    """Spell check: uses data/word_list.csv if present, else data/unique_words.txt."""
+    from q3_spelling.spell_checker import run_spell_check, run_spell_check_from_csv
+    csv_path = _data_path("data/word_list.csv")
+    txt_path = _data_path(words_file) if words_file and words_file.startswith("data/") else (Path(words_file) if words_file else _data_path("data/unique_words.txt"))
+    if csv_path.exists():
+        run_spell_check_from_csv(str(csv_path))
+    elif txt_path.exists():
+        run_spell_check(str(txt_path))
+    else:
+        raise FileNotFoundError(
+            f"Neither {csv_path} nor {txt_path} found. Add data/word_list.csv or data/unique_words.txt"
+        )
 
 
 def run_q3_demo():
@@ -54,14 +72,16 @@ def run_q3_demo():
 def run_q3_csv(csv_path: str = "data/word_list.csv"):
     """Q3 from CSV (export Word List Google Sheet as CSV)."""
     from q3_spelling.spell_checker import run_spell_check_from_csv
-    run_spell_check_from_csv(csv_path)
+    path = _data_path(csv_path) if csv_path.startswith("data/") else Path(csv_path)
+    run_spell_check_from_csv(str(path))
 
 
 # ── Q2 disfluency pipeline ────────────────────────────────────────────────────
 
 def run_q2(index_csv: str = "data/index.csv"):
     from q2_disfluency.pipeline import run_pipeline
-    run_pipeline(index_csv)
+    path = _data_path(index_csv) if index_csv.startswith("data/") else Path(index_csv)
+    run_pipeline(str(path))
 
 
 def run_q2_demo():
@@ -77,9 +97,16 @@ def run_q1(index_csv: str = "data/index.csv"):
     from q1_whisper_finetune.train import train
     from q1_whisper_finetune.evaluate import evaluate_models
 
-    df = download_dataset(index_csv)
-    build_training_manifest(df)
-    train("data/train_manifest.csv")
+    path = _data_path(index_csv) if index_csv.startswith("data/") else Path(index_csv)
+    df = download_dataset(str(path))
+    manifest = build_training_manifest(df)
+    manifest_path = str(_data_path("data/train_manifest.csv"))
+    if manifest is None or len(manifest) == 0:
+        print("\n[SKIP] No training segments (all downloads failed or no valid segments).")
+        print("       Skipping fine-tuning. Run --q1-demo for WER table format, or fix index URLs.")
+        run_q1_demo()
+        return
+    train(manifest_path)
     evaluate_models()
 
 
@@ -175,7 +202,7 @@ if __name__ == "__main__":
         print("    --q1          Download data → fine-tune Whisper → evaluate")
         print("    --q1-eval     Evaluate baseline Whisper on FLEURS Hindi (no training)")
         print("    --q2          Disfluency detection on full dataset")
-        print("    --q3          Spell check (requires data/unique_words.txt)")
+        print("    --q3          Spell check (data/word_list.csv or data/unique_words.txt)")
         print()
         print("Running --all-demo by default...")
 
