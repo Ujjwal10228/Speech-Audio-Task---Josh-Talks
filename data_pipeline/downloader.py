@@ -3,6 +3,8 @@ Download audio, transcription, and metadata files from GCP.
 Reads a CSV index file with columns: user_id, recording_id, language, duration,
 rec_url_gcp, transcription_url, metadata_url.
 """
+from __future__ import annotations
+
 import json
 import time
 from pathlib import Path

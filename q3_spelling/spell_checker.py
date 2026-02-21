@@ -27,6 +27,8 @@ Layer 4 – Frequency-based heuristic
 English loanwords transcribed in Devanagari are intentionally kept as correct
 (per task guidelines).
 """
+from __future__ import annotations
+
 import re
 import unicodedata
 from collections import Counter
@@ -182,11 +184,100 @@ def run_spell_check(words_file: str | Path | None = None, freq_file: str | Path 
     correct   = (result["label"] == "correct spelling").sum()
     incorrect = (result["label"] == "incorrect spelling").sum()
 
-    result.to_csv(SPELL_OUTPUT_CSV, index=False, encoding="utf-8-sig")
+    # PS deliverable format: Word | Correct spelling / Incorrect spelling
+    deliverable = result[["word", "label"]].rename(
+        columns={"word": "Word", "label": "Correct spelling / Incorrect spelling"}
+    )
+    deliverable.to_csv(SPELL_OUTPUT_CSV, index=False, encoding="utf-8-sig")
     print(f"\nResults saved → {SPELL_OUTPUT_CSV}")
     print(f"  Correct spelling  : {correct:,}")
     print(f"  Incorrect spelling: {incorrect:,}")
     print(f"  Total unique words: {len(result):,}")
+    print(f"\n  [Deliverable Q3] Final count of correctly spelled unique words: {correct:,}")
+    return result
+
+
+def run_spell_check_from_csv(csv_path: str | Path, freq_file: str | Path | None = None):
+    """
+    Run spell check on words from a CSV (e.g. exported from Word List Google Sheet).
+    Expects first column to be words, or a column named 'Word'.
+    Output: PS deliverable format Word | Correct spelling / Incorrect spelling.
+    """
+    path = Path(csv_path)
+    if not path.exists():
+        raise FileNotFoundError(f"CSV not found: {path}")
+
+    df = pd.read_csv(path, encoding="utf-8")
+    if "Word" in df.columns:
+        words = df["Word"].dropna().astype(str).str.strip().unique().tolist()
+    else:
+        words = df.iloc[:, 0].dropna().astype(str).str.strip().unique().tolist()
+    words = [w for w in words if w]
+
+    print(f"Loaded {len(words):,} unique words from CSV.")
+
+    freq: Counter | None = None
+    if freq_file and Path(freq_file).exists():
+        freq_df = pd.read_csv(freq_file)
+        freq = Counter(dict(zip(freq_df["word"], freq_df["count"])))
+
+    dict_words = load_hindi_dictionary()
+    result = classify_words(words, freq_counter=freq, dict_words=dict_words)
+
+    correct   = (result["label"] == "correct spelling").sum()
+    incorrect = (result["label"] == "incorrect spelling").sum()
+
+    deliverable = result[["word", "label"]].rename(
+        columns={"word": "Word", "label": "Correct spelling / Incorrect spelling"}
+    )
+    deliverable.to_csv(SPELL_OUTPUT_CSV, index=False, encoding="utf-8-sig")
+    print(f"\nResults saved → {SPELL_OUTPUT_CSV}")
+    print(f"  Correct spelling  : {correct:,}")
+    print(f"  Incorrect spelling: {incorrect:,}")
+    print(f"  Total unique words: {len(result):,}")
+    print(f"\n  [Deliverable Q3] Final count of correctly spelled unique words: {correct:,}")
+    return result
+
+
+def demo():
+    """
+    Demonstrate spell checking on a sample of Hindi words (correct + incorrect).
+    No external word file needed.
+    """
+    sample_words = [
+        # Correct common words
+        "नमस्ते", "भारत", "हिन्दी", "दुनिया", "स्कूल", "पानी", "खाना",
+        "बच्चे", "सरकार", "शिक्षा", "विद्यालय", "परिवार", "दोस्त",
+        "कहानी", "ज़िंदगी", "अस्पताल", "रास्ता", "बाज़ार", "किताब",
+        "गाड़ी", "मोबाइल", "कंप्यूटर", "इंटरनेट", "टेक्नोलॉजी",
+        "है", "हैं", "था", "थे", "की", "के", "का", "एक", "में",
+        "से", "और", "को", "यह", "पर", "भी", "तो", "जो", "कि",
+        "नहीं", "हम", "आप", "मैं", "कुछ", "सब", "अभी", "बहुत",
+        "करना", "होना", "लेकिन", "अगर", "साथ", "बाद", "पहले",
+        # Incorrect / garbled words (invalid structure or script issues)
+        "kkk", "xyz", "ाम", "्रर", "॥॥",
+        "abcde", "12345", "hello", "world",
+        "ंंंं", "ँँँँ",
+        # Borderline / transliterated English in Devanagari
+        "फ़ोन", "कॉलेज", "डॉक्टर", "ऑफ़िस",
+    ]
+
+    print(f"Loaded {len(sample_words)} sample words for demo.")
+    dict_words = load_hindi_dictionary()
+    result = classify_words(sample_words, freq_counter=None, dict_words=dict_words)
+
+    correct   = (result["label"] == "correct spelling").sum()
+    incorrect = (result["label"] == "incorrect spelling").sum()
+
+    deliverable = result[["word", "label"]].rename(
+        columns={"word": "Word", "label": "Correct spelling / Incorrect spelling"}
+    )
+    deliverable.to_csv(SPELL_OUTPUT_CSV, index=False, encoding="utf-8-sig")
+    print(f"\nResults saved → {SPELL_OUTPUT_CSV}")
+    print(f"  Correct spelling  : {correct}")
+    print(f"  Incorrect spelling: {incorrect}")
+    print(f"  Total words       : {len(result)}")
+    print(f"\n  [Deliverable Q3] Final count of correctly spelled unique words: {correct}")
     return result
 
 

@@ -4,6 +4,8 @@ Fine-tune Whisper-small on the Josh Talks Hindi dataset.
 Usage (from repo root):
     python -m q1_whisper_finetune.train
 """
+from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 

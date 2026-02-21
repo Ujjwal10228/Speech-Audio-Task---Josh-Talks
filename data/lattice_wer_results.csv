@@ -1,0 +1,6 @@
+model,std_S,std_D,std_I,std_N,std_WER_%,lattice_S,lattice_D,lattice_I,lattice_N,lattice_WER_%,WER_delta_%
+Model-A,1,0,0,5,20.0,0,0,0,5,0.0,-20.0
+Model-B,1,0,0,5,20.0,0,0,0,5,0.0,-20.0
+Model-C,1,0,0,5,20.0,0,0,0,5,0.0,-20.0
+Model-D,0,0,0,5,0.0,1,0,0,5,20.0,20.0
+Model-E,2,0,0,5,40.0,1,0,0,5,20.0,-20.0

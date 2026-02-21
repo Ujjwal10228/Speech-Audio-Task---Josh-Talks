@@ -1,0 +1,12 @@
+﻿recording_id,disfluency_type,start_time,end_time,segmented_audio_link,segment_index,segment_text,matched_token,clip_filename,clip_path
+demo_rec_001,repetition,0.0,2.5,(upload clip and add link),0,मैं मैं बहुत खुश हूँ,मैं,demo_rec_001_0_2500.wav,
+demo_rec_001,filler,2.5,5.0,(upload clip and add link),1,उह हम्म तो मतलब यह बात है,उह,demo_rec_001_2500_5000.wav,
+demo_rec_001,filler,7.5,10.0,(upload clip and add link),3,वो वो बस ऐसे ही बोल रहा था,वो,demo_rec_001_7500_10000.wav,
+demo_rec_001,repetition,7.5,10.0,(upload clip and add link),3,वो वो बस ऐसे ही बोल रहा था,वो,demo_rec_001_7500_10000.wav,
+demo_rec_001,filler,10.0,12.5,(upload clip and add link),4,मैं… मतलब हम कल जाएंगे,मतलब,demo_rec_001_10000_12500.wav,
+demo_rec_001,hesitation,10.0,12.5,(upload clip and add link),4,मैं… मतलब हम कल जाएंगे,ए,demo_rec_001_10000_12500.wav,
+demo_rec_002,filler,12.5,14.0,(upload clip and add link),0,हाँऽऽऽ ठीक है ना,ठीक,demo_rec_002_12500_14000.wav,
+demo_rec_002,prolongation,12.5,14.0,(upload clip and add link),0,हाँऽऽऽ ठीक है ना,ऽ,demo_rec_002_12500_14000.wav,
+demo_rec_002,filler,14.0,16.5,(upload clip and add link),1,यानी लाइक बेसिकली यह सही है,यानी,demo_rec_002_14000_16500.wav,
+demo_rec_002,filler,16.5,19.0,(upload clip and add link),2,uh um so like basically this is it,uh,demo_rec_002_16500_19000.wav,
+demo_rec_002,filler,19.0,21.0,(upload clip and add link),3,अरे ओह मैंने देखा नहीं,अरे,demo_rec_002_19000_21000.wav,

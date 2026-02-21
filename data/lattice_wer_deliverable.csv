@@ -1,0 +1,6 @@
+model,WER_before_%,WER_after_lattice_%
+Model-A,20.0,0.0
+Model-B,20.0,0.0
+Model-C,20.0,0.0
+Model-D,0.0,20.0
+Model-E,40.0,20.0

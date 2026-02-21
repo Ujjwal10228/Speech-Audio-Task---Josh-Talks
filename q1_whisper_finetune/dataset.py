@@ -2,6 +2,8 @@
 HuggingFace Dataset wrapper for the Josh Talks Hindi ASR data.
 Each example: {'audio': {'array': np.ndarray, 'sampling_rate': int}, 'sentence': str}
 """
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import soundfile as sf
@@ -57,8 +59,13 @@ def build_hf_dataset(manifest_csv: str | Path, test_size: float = 0.1, seed: int
 def load_fleurs_hindi_test():
     """Load the FLEURS Hindi test split from HuggingFace."""
     from datasets import load_dataset
-    fleurs = load_dataset("google/fleurs", "hi_in", split="test", trust_remote_code=True)
-    # Rename column to match our convention
+    try:
+        fleurs = load_dataset("google/fleurs", "hi_in", split="test")
+    except (RuntimeError, ValueError):
+        fleurs = load_dataset(
+            "google/fleurs", "hi_in", split="test",
+            revision="refs/convert/parquet",
+        )
     if "transcription" in fleurs.column_names:
         fleurs = fleurs.rename_column("transcription", "sentence")
     elif "raw_transcription" in fleurs.column_names:

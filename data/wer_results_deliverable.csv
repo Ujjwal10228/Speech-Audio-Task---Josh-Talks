@@ -1,0 +1,3 @@
+Model,Dataset,WER
+Whisper-small (baseline),FLEURS hi_in test,32.41%
+Whisper-small (fine-tuned on JoshTalks-Hi),FLEURS hi_in test,18.67%

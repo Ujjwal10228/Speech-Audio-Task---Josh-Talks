@@ -4,6 +4,8 @@ Clip audio segments from full recordings using pydub.
 Why pydub: clean API for millisecond-precise slicing without re-encoding the
 full file; exports to WAV directly.
 """
+from __future__ import annotations
+
 from pathlib import Path
 
 from pydub import AudioSegment

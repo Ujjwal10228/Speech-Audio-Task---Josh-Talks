@@ -19,6 +19,7 @@ from __future__ import annotations
 import pandas as pd
 import numpy as np
 
+from config import DATA_DIR
 from q4_lattice_wer.lattice import build_lattice, _levenshtein_alignment
 
 
@@ -108,8 +109,56 @@ def demo():
 
     result = compute_all_wer(reference, model_outputs)
     print(result.to_string(index=False))
-    result.to_csv("data/lattice_wer_results.csv", index=False)
-    print("\nSaved → data/lattice_wer_results.csv")
+    out_csv = DATA_DIR / "lattice_wer_results.csv"
+    result.to_csv(out_csv, index=False)
+    deliverable = result[["model", "std_WER_%", "lattice_WER_%"]].rename(
+        columns={"std_WER_%": "WER_before_%", "lattice_WER_%": "WER_after_lattice_%"}
+    )
+    deliverable.to_csv(DATA_DIR / "lattice_wer_deliverable.csv", index=False)
+    print(f"\nSaved → {out_csv}")
+    print(f"Saved (PS format) → {DATA_DIR / 'lattice_wer_deliverable.csv'}")
+    return result
+
+
+def run_from_csv(csv_path: str, out_csv: str | None = None):
+    """
+    Run lattice WER on data from CSV (e.g. exported from Q4 Google Sheet).
+    CSV must have: one column for reference (named 'reference' or first column),
+    and columns for each model output (remaining columns or named Model-A, Model-B, ...).
+    Saves PS deliverable: WER per model before and after lattice correction.
+    """
+    from pathlib import Path
+    df = pd.read_csv(Path(csv_path), encoding="utf-8")
+    # Assume first column is reference, rest are model outputs
+    cols = [c for c in df.columns if str(c).strip()]
+    if not cols:
+        raise ValueError("CSV has no columns")
+    ref_col = "reference" if "reference" in df.columns else cols[0]
+    model_cols = [c for c in cols if c != ref_col]
+    if not model_cols:
+        raise ValueError("CSV must have at least one model column besides reference")
+
+    # Use first row or concatenate if multiple rows (one per utterance)
+    reference = str(df[ref_col].iloc[0]).strip() if len(df) == 1 else " ".join(df[ref_col].astype(str).str.strip())
+    model_outputs = {}
+    for c in model_cols:
+        if len(df) == 1:
+            model_outputs[c] = str(df[c].iloc[0]).strip()
+        else:
+            model_outputs[c] = " ".join(df[c].astype(str).str.strip())
+
+    print("Reference:", reference[:80] + "..." if len(reference) > 80 else reference)
+    print("Models:", list(model_outputs.keys()))
+
+    result = compute_all_wer(reference, model_outputs)
+    # PS deliverable: WER per model (before and after lattice correction)
+    deliverable = result[["model", "std_WER_%", "lattice_WER_%"]].rename(
+        columns={"std_WER_%": "WER_before_%", "lattice_WER_%": "WER_after_lattice_%"}
+    )
+    out_path = Path(out_csv) if out_csv else DATA_DIR / "lattice_wer_results.csv"
+    deliverable.to_csv(out_path, index=False)
+    print(result.to_string(index=False))
+    print(f"\nSaved → {out_path}")
     return result
 
 

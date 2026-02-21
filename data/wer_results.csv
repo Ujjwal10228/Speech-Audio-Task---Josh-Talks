@@ -1,0 +1,3 @@
+model,dataset,wer,notes
+Whisper-small (baseline),FLEURS hi_in test,32.41,"pretrained openai/whisper-small, zero-shot Hindi"
+Whisper-small (fine-tuned on JoshTalks-Hi),FLEURS hi_in test,18.67,"4000 steps, lr=1e-5, effective batch=16"

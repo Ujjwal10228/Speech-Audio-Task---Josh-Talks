@@ -51,8 +51,8 @@ HINDI_FILLERS = {
 # Regex patterns for repetitions / false starts (applied to segment text)
 import re
 REPETITION_PATTERN = re.compile(
-    r'\b(\w+)\s+\1\b',           # word word
-    re.IGNORECASE | re.UNICODE,
+    r'(?<!\S)(\S+)\s+\1(?!\S)',   # word word (Unicode-safe boundaries)
+    re.UNICODE,
 )
 PROLONGATION_PATTERN = re.compile(
     r'(\w)\1{2,}',               # aaaa / soooo

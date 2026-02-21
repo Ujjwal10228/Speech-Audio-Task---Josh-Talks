@@ -1,6 +1,8 @@
 """
 Preprocessing utilities: audio normalisation and text cleaning for Hindi ASR.
 """
+from __future__ import annotations
+
 import re
 import unicodedata
 from pathlib import Path
